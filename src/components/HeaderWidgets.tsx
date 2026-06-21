@@ -16,18 +16,39 @@ const MENU_T = {
     changePassword: "تغییر رمز عبور",
     logout: "خروج از سیستم",
     login: "ورود",
+    back: "بازگشت به خانه",
+    settings: "تنظیمات",
+    help: "راهنما",
+    confirmTitle: "خروج از برنامه",
+    confirmMsg: "آیا می‌خواهید از محیط برنامه خارج شوید؟",
+    yes: "بله، خارج شو",
+    no: "انصراف",
   },
   en: {
     editProfile: "Edit profile",
     changePassword: "Change password",
     logout: "Sign out",
     login: "Login",
+    back: "Back to home",
+    settings: "Settings",
+    help: "Help",
+    confirmTitle: "Leave the app",
+    confirmMsg: "Do you want to exit the application?",
+    yes: "Yes, exit",
+    no: "Cancel",
   },
   zh: {
     editProfile: "编辑资料",
     changePassword: "修改密码",
     logout: "退出系统",
     login: "登录",
+    back: "返回首页",
+    settings: "设置",
+    help: "帮助",
+    confirmTitle: "退出应用",
+    confirmMsg: "您要退出当前应用吗？",
+    yes: "是，退出",
+    no: "取消",
   },
 };
 
@@ -35,6 +56,8 @@ const ROLE_LABEL: Record<string, Record<string, string>> = {
   admin: { fa: "مدیر سیستم", en: "Admin", zh: "管理员" },
   manager: { fa: "مدیر", en: "Manager", zh: "经理" },
   user: { fa: "کاربر", en: "User", zh: "用户" },
+  technician: { fa: "تکنسین", en: "Technician", zh: "技术员" },
+  operator: { fa: "اپراتور", en: "Operator", zh: "操作员" },
 };
 
 export function HeaderDate() {
@@ -98,6 +121,88 @@ export function LangSwitch({ compact = false }: { compact?: boolean }) {
         </div>
       )}
     </div>
+  );
+}
+
+export function IconBtn({
+  icon,
+  label,
+  onClick,
+  variant,
+}: {
+  icon: string;
+  label: string;
+  onClick?: () => void;
+  variant?: "default" | "danger";
+}) {
+  return (
+    <button
+      className={`icon-btn ${variant === "danger" ? "icon-btn-danger" : ""}`}
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+    >
+      <i className={`fas ${icon}`} />
+    </button>
+  );
+}
+
+export function SettingsBtn() {
+  const [lang] = useLang();
+  const m = MENU_T[lang];
+  return <IconBtn icon="fa-gear" label={m.settings} onClick={() => alert(m.settings)} />;
+}
+
+export function HelpBtn() {
+  const [lang] = useLang();
+  const m = MENU_T[lang];
+  return <IconBtn icon="fa-circle-question" label={m.help} onClick={() => alert(m.help)} />;
+}
+
+export function BackHomeButton() {
+  const navigate = useNavigate();
+  const [lang] = useLang();
+  const user = useUser();
+  const m = MENU_T[lang];
+  const [confirm, setConfirm] = useState(false);
+
+  const go = () => {
+    if (user) setConfirm(true);
+    else navigate({ to: "/" });
+  };
+
+  const doExit = () => {
+    setConfirm(false);
+    setUserGlobal(null);
+    navigate({ to: "/" });
+  };
+
+  return (
+    <>
+      <button className="back-home-btn" onClick={go}>
+        <i className="fas fa-home" />
+        <span className="back-home-lbl">{m.back}</span>
+      </button>
+      {confirm && (
+        <div className="confirm-overlay" onClick={() => setConfirm(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">
+              <i className="fas fa-triangle-exclamation" />
+            </div>
+            <h3>{m.confirmTitle}</h3>
+            <p>{m.confirmMsg}</p>
+            <div className="confirm-actions">
+              <button className="confirm-no" onClick={() => setConfirm(false)}>
+                <i className="fas fa-xmark" /> {m.no}
+              </button>
+              <button className="confirm-yes" onClick={doExit}>
+                <i className="fas fa-right-from-bracket" /> {m.yes}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -176,7 +281,22 @@ export function UserMenu({ onLoginClick }: { onLoginClick?: () => void }) {
   );
 }
 
+/** Standard header tools cluster: BackHome + Settings + Help + Date + Lang + User */
+export function HeaderTools({ onLoginClick, showBack = true }: { onLoginClick?: () => void; showBack?: boolean }) {
+  return (
+    <div className="hdr-tools">
+      {showBack && <BackHomeButton />}
+      <SettingsBtn />
+      <HelpBtn />
+      <HeaderDate />
+      <LangSwitch />
+      <UserMenu onLoginClick={onLoginClick} />
+    </div>
+  );
+}
+
 export const HEADER_WIDGETS_STYLES = `
+.hdr-tools { display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; }
 .hdr-date { display:inline-flex; align-items:center; gap:8px; padding:7px 12px;
   background:#fff; border:1px solid rgba(12,27,51,.10); border-radius:10px;
   font-size:12px; color:#0c1b33; font-weight:600; line-height:1.1; }
@@ -202,6 +322,42 @@ export const HEADER_WIDGETS_STYLES = `
 .lang-item.active { background:rgba(30,108,243,.10); color:#1e6cf3; font-weight:700; }
 .lang-item .flag { font-size:16px; }
 .lang-item .ok { margin-inline-start:auto; color:#1e6cf3; }
+
+.icon-btn { width:38px; height:38px; display:inline-grid; place-items:center;
+  border-radius:10px; background:#fff; border:1px solid rgba(12,27,51,.10);
+  color:#0c1b33; cursor:pointer; font-size:14px; transition:.2s; }
+.icon-btn:hover { border-color:#1e6cf3; color:#1e6cf3; background:rgba(30,108,243,.06); }
+.icon-btn-danger { color:#dc2626; }
+.icon-btn-danger:hover { border-color:#dc2626; color:#fff; background:#dc2626; }
+
+.back-home-btn { display:inline-flex; align-items:center; gap:.45rem; padding:.5rem .9rem;
+  border-radius:10px; font-size:.82rem; font-weight:700; cursor:pointer; font-family:inherit;
+  background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border:1px solid #b91c1c;
+  box-shadow:0 6px 16px rgba(220,38,38,.35); transition:.2s; }
+.back-home-btn:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(220,38,38,.45); }
+.back-home-btn i { font-size:.95rem; }
+
+.confirm-overlay { position:fixed; inset:0; background:rgba(8,13,28,.55);
+  backdrop-filter:blur(4px); display:grid; place-items:center; z-index:9999; padding:1rem;
+  animation:cfade .15s ease-out; }
+@keyframes cfade { from{opacity:0} to{opacity:1} }
+.confirm-modal { background:#fff; color:#0c1b33; border-radius:18px; max-width:420px; width:100%;
+  padding:1.75rem; text-align:center; box-shadow:0 30px 70px rgba(0,0,0,.35);
+  animation:czoom .18s ease-out; font-family:inherit; }
+@keyframes czoom { from{transform:scale(.92);opacity:0} to{transform:scale(1);opacity:1} }
+.confirm-icon { width:64px; height:64px; margin:0 auto 1rem; border-radius:50%;
+  background:#fef2f2; color:#dc2626; display:grid; place-items:center; font-size:1.75rem; }
+.confirm-modal h3 { margin:0 0 .5rem; font-size:1.2rem; font-weight:800; }
+.confirm-modal p { margin:0 0 1.5rem; color:#6c819b; font-size:.95rem; }
+.confirm-actions { display:flex; gap:.6rem; justify-content:center; }
+.confirm-actions button { flex:1; max-width:160px; padding:.65rem 1rem; border-radius:10px;
+  font-weight:700; font-family:inherit; cursor:pointer; border:none; font-size:.9rem;
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem; }
+.confirm-no { background:#eef2f7; color:#0c1b33; }
+.confirm-no:hover { background:#e2e8f0; }
+.confirm-yes { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff;
+  box-shadow:0 6px 16px rgba(220,38,38,.35); }
+.confirm-yes:hover { transform:translateY(-1px); }
 
 .enter-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 16px;
   border-radius:10px; background:linear-gradient(135deg,#0a3eaa,#1e6cf3); color:#fff;
@@ -242,12 +398,14 @@ export const HEADER_WIDGETS_STYLES = `
 .um-item.um-danger:hover { background:#fef2f2; color:#dc2626; }
 .um-item i { width:18px; text-align:center; }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .um-info { display:none; }
   .hdr-date-text .d { font-size:11px; }
   .hdr-date-text .t { display:none; }
   .lang-btn span:not(.flag-inline) { display:none; }
   .enter-btn span { display:none; }
   .enter-btn { padding:9px 11px; }
+  .back-home-lbl { display:none; }
+  .back-home-btn { padding:.5rem .7rem; }
 }
 `;

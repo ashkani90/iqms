@@ -833,6 +833,7 @@ function LoginModal({ lang, onClose }: { lang: Lang; onClose: () => void }) {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -866,7 +867,6 @@ function LoginModal({ lang, onClose }: { lang: Lang; onClose: () => void }) {
       if (data?.ok && data.user) user = data.user;
       else if (data?.error) { setErr(data.error); setLoading(false); return; }
     } catch {
-      // API not reachable — fall back to demo users
       const d = DEMO_USERS[username.trim().toLowerCase()];
       if (d && d.password === password) user = d.user;
     }
@@ -899,11 +899,23 @@ function LoginModal({ lang, onClose }: { lang: Lang; onClose: () => void }) {
           </div>
           <div className="form-group">
             <label>{lt.password}</label>
-            <input
-              type="password" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={lt.passwordPh} autoComplete="current-password"
-            />
+            <div className="pwd-wrap">
+              <input
+                type={showPwd ? "text" : "password"} value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={lt.passwordPh} autoComplete="current-password"
+                className="pwd-input"
+              />
+              <button
+                type="button"
+                className="pwd-toggle"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? "hide password" : "show password"}
+                tabIndex={-1}
+              >
+                <i className={`fas ${showPwd ? "fa-eye-slash" : "fa-eye"}`} />
+              </button>
+            </div>
           </div>
 
           {err && <div className="login-err"><i className="fas fa-circle-exclamation" /> {err}</div>}
@@ -998,7 +1010,7 @@ const STYLES = `
 .iqms * { box-sizing:border-box; }
 .iqms a { text-decoration:none; color:inherit; }
 .iqms ul { list-style:none; padding:0; margin:0; }
-.iqms .container { max-width: 1400px; margin:0 auto; padding: 5 24px; }
+.iqms .container { max-width: 1240px; margin:0 auto; padding: 0 24px; }
 
 /* HEADER */
 .header { position: sticky; top:0; z-index:100;
@@ -1249,6 +1261,12 @@ const STYLES = `
 .login-head h3 { font-size:22px; font-weight:800; color: var(--ink); margin:0 0 6px; }
 .login-head p { color: var(--muted); font-size:14px; margin:0; }
 .login-form .form-group { margin-bottom:14px; }
+.pwd-wrap { position:relative; }
+.pwd-wrap .pwd-input { width:100%; padding-inline-end:42px !important; }
+.pwd-toggle { position:absolute; top:50%; inset-inline-end:8px; transform:translateY(-50%);
+  background:transparent; border:none; width:32px; height:32px; border-radius:8px;
+  display:grid; place-items:center; color:#6c819b; cursor:pointer; font-size:14px; }
+.pwd-toggle:hover { background:rgba(30,108,243,.08); color:#1e6cf3; }
 .login-err { display:flex; align-items:center; gap:8px; padding:10px 12px;
   background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:10px;
   font-size:13px; margin-bottom:14px; }

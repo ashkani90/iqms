@@ -9,9 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as DepartmentsRouteImport } from './routes/departments'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspaceDeptRouteImport } from './routes/workspace.$dept'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DepartmentsRoute = DepartmentsRouteImport.update({
   id: '/departments',
   path: '/departments',
@@ -22,35 +29,55 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspaceDeptRoute = WorkspaceDeptRouteImport.update({
+  id: '/workspace/$dept',
+  path: '/workspace/$dept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/departments': typeof DepartmentsRoute
+  '/users': typeof UsersRoute
+  '/workspace/$dept': typeof WorkspaceDeptRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/departments': typeof DepartmentsRoute
+  '/users': typeof UsersRoute
+  '/workspace/$dept': typeof WorkspaceDeptRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/departments': typeof DepartmentsRoute
+  '/users': typeof UsersRoute
+  '/workspace/$dept': typeof WorkspaceDeptRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/departments'
+  fullPaths: '/' | '/departments' | '/users' | '/workspace/$dept'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/departments'
-  id: '__root__' | '/' | '/departments'
+  to: '/' | '/departments' | '/users' | '/workspace/$dept'
+  id: '__root__' | '/' | '/departments' | '/users' | '/workspace/$dept'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DepartmentsRoute: typeof DepartmentsRoute
+  UsersRoute: typeof UsersRoute
+  WorkspaceDeptRoute: typeof WorkspaceDeptRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/departments': {
       id: '/departments'
       path: '/departments'
@@ -65,12 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workspace/$dept': {
+      id: '/workspace/$dept'
+      path: '/workspace/$dept'
+      fullPath: '/workspace/$dept'
+      preLoaderRoute: typeof WorkspaceDeptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DepartmentsRoute: DepartmentsRoute,
+  UsersRoute: UsersRoute,
+  WorkspaceDeptRoute: WorkspaceDeptRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
